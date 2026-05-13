@@ -43,6 +43,7 @@ import {
   ChatRecordingService,
   type ResumedSessionData,
   type ConversationRecord,
+  type MessageRecord,
 } from '../services/chatRecordingService.js';
 import {
   ContentRetryEvent,
@@ -273,6 +274,7 @@ export class GeminiChat {
   private readonly chatRecordingService: ChatRecordingService;
   private lastPromptTokenCount: number;
   private callCounter = 0;
+  private initialMessages?: MessageRecord[];
   agentHistory: AgentChatHistory;
 
   constructor(
@@ -282,8 +284,10 @@ export class GeminiChat {
     history: Array<Content | HistoryTurn> = [],
     resumedSessionData?: ResumedSessionData,
     private readonly onModelChanged?: (modelId: string) => Promise<Tool[]>,
+    messages?: MessageRecord[],
   ) {
     validateHistory(history);
+<<<<<<< HEAD
 
     let initialHistory: HistoryTurn[];
     // If history is passed, it is the most up-to-date in-memory state and takes precedence.
@@ -313,6 +317,10 @@ export class GeminiChat {
     }
 
     this.agentHistory = new AgentChatHistory(initialHistory);
+=======
+    this.initialMessages = messages;
+    this.agentHistory = new AgentChatHistory(history);
+>>>>>>> d92c125ad (feat: implement unified session bundle format (v2.0) and history reconstruction)
     this.chatRecordingService = new ChatRecordingService(context);
     this.lastPromptTokenCount = estimateTokenCountSync(
       this.agentHistory.flatMap((c) => c.content.parts || []),
@@ -326,13 +334,21 @@ export class GeminiChat {
   async initialize(
     resumedSessionData?: ResumedSessionData,
     kind: 'main' | 'subagent' = 'main',
+    messages?: MessageRecord[],
   ) {
+    const messagesToUse = messages ?? this.initialMessages;
     await this.chatRecordingService.initialize(resumedSessionData, kind);
+<<<<<<< HEAD
     // Sync initial history with the recorder to ensure all turns (even bootstrapped ones)
     // are durable and coordinated.
     this.chatRecordingService.updateMessagesFromHistory(
       this.agentHistory.get(),
     );
+=======
+    if (messagesToUse) {
+      this.chatRecordingService.resetMessages(messagesToUse);
+    }
+>>>>>>> d92c125ad (feat: implement unified session bundle format (v2.0) and history reconstruction)
   }
 
   setSystemInstruction(sysInstr: string) {
